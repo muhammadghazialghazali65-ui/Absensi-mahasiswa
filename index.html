@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Absensi Kampus - QR Code</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col justify-between">
+
+    <!-- ==================== LANDING PAGE / DASHBOARD UTAMA ==================== -->
+    <div id="view-landing" class="flex-grow flex items-center justify-center px-4 py-12">
+        <div class="max-w-4xl w-full text-center space-y-8">
+            <div class="space-y-3">
+                <div class="bg-indigo-600 text-white w-20 h-20 rounded-2xl flex items-center justify-center text-3xl mx-auto shadow-lg shadow-indigo-200">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900">Sistem Absensi Mahasiswa QR Code</h1>
+                <p class="text-slate-500 max-w-xl mx-auto text-sm sm:text-base">
+                    Pilih peran Anda. Akses Dosen dilindungi oleh PIN keamanan khusus admin.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto pt-4">
+                <!-- Tombol Portal Dosen (Dilindungi PIN) -->
+                <button onclick="pilihPeran('dosen')" class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 hover:border-indigo-500 hover:shadow-md transition text-left group flex flex-col justify-between">
+                    <div>
+                        <div class="bg-indigo-50 text-indigo-600 w-12 h-12 rounded-xl flex items-center justify-center text-xl mb-4 group-hover:bg-indigo-600 group-hover:text-white transition">
+                            <i class="fa-solid fa-chalkboard-user"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-800 flex items-center justify-between">
+                            Portal Dosen / Admin 
+                            <i class="fa-solid fa-lock text-xs text-amber-500"></i>
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-1">Kelola mata kuliah, aktifkan kamera scanner, dan pantau log kehadiran real-time.</p>
+                    </div>
+                    <div class="mt-6 flex items-center text-xs font-semibold text-indigo-600 group-hover:translate-x-1 transition">
+                        Masuk (Butuh PIN) <i class="fa-solid fa-arrow-right ml-1.5"></i>
+                    </div>
+                </button>
+
+                <!-- Tombol Portal Mahasiswa -->
+                <button onclick="pilihPeran('mahasiswa')" class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 hover:border-emerald-500 hover:shadow-md transition text-left group flex flex-col justify-between">
+                    <div>
+                        <div class="bg-emerald-50 text-emerald-600 w-12 h-12 rounded-xl flex items-center justify-center text-xl mb-4 group-hover:bg-emerald-600 group-hover:text-white transition">
+                            <i class="fa-solid fa-id-card"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-800">Portal Mahasiswa</h3>
+                        <p class="text-xs text-slate-500 mt-1">Tampilkan Kartu Tanda Mahasiswa (KTM) digital berisi QR Code unik Anda untuk absensi.</p>
+                    </div>
+                    <div class="mt-6 flex items-center text-xs font-semibold text-emerald-600 group-hover:translate-x-1 transition">
+                        Buka Kartu QR <i class="fa-solid fa-arrow-right ml-1.5"></i>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==================== APLIKASI UTAMA (TERSEMBUNYI DI AWAL) ==================== -->
+    <div id="view-app" class="hidden flex-grow flex flex-col justify-between">
+        
+        <!-- Header Navigasi -->
+        <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <button onclick="kembaliKeHome()" class="bg-slate-800 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-house"></i> Beranda
+                    </button>
+                    <span id="role-title-badge" class="text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-3 py-1 rounded-full"></span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button id="btn-ganti-pin" onclick="ubahPinDosen()" class="hidden text-xs text-indigo-300 hover:text-white underline"><i class="fa-solid fa-key mr-1"></i> Ganti PIN</button>
+                    <button onclick="kembaliKeHome()" class="text-xs text-slate-400 hover:text-white transition">Keluar</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Konten Utama -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-grow">
+            
+            <!-- Tampilan Dosen -->
+            <section id="section-dosen" class="hidden space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Scanner -->
+                    <div class="space-y-6">
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                            <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-camera text-indigo-600"></i> Kamera Scanner Dosen
+                            </h2>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Pilih Mata Kuliah Aktif</label>
+                                <select id="scanner-mk" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none">
+                                    <option value="">-- Pilih Mata Kuliah --</option>
+                                </select>
+                            </div>
+                            <div class="flex gap-2 pt-1">
+                                <button onclick="mulaiScan()" class="flex-1 bg-indigo-600 text-white py-2.5 rounded-xl font-medium text-sm hover:bg-indigo-700 transition shadow-sm flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-play"></i> Mulai
+                                </button>
+                                <button onclick="hentikanScan()" class="bg-rose-50 text-rose-600 border border-rose-200 px-4 py-2.5 rounded-xl font-medium text-sm hover:bg-rose-100 transition flex items-center justify-center gap-1">
+                                    <i class="fa-solid fa-stop"></i> Stop
+                                </button>
+                            </div>
+                            <div id="reader" class="w-full rounded-xl overflow-hidden border border-slate-200 bg-slate-900 min-h-[220px]"></div>
+                            <div id="scan-status" class="text-xs text-center font-medium text-slate-500 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                Kamera non-aktif. Pilih mata kuliah lalu klik "Mulai".
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kelola MK & Log -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                                <div>
+                                    <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                                        <i class="fa-solid fa-book-bookmark text-indigo-600"></i> Kelola Mata Kuliah
+                                    </h2>
+                                    <p class="text-xs text-slate-500 mt-0.5">Tambah mata kuliah perkuliahan</p>
+                                </div>
+                                <form id="form-tambah-mk" onsubmit="tambahMataKuliah(event)" class="flex gap-2 w-full sm:w-auto">
+                                    <input type="text" id="mk-kode" required placeholder="Kode (mis: IF301)" class="w-28 px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:outline-none">
+                                    <input type="text" id="mk-nama" required placeholder="Nama Mata Kuliah" class="flex-1 sm:w-48 px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:outline-none">
+                                    <button type="submit" class="bg-indigo-600 text-white px-3 py-2 rounded-lg text-xs font-medium hover:bg-indigo-700 transition whitespace-nowrap">
+                                        <i class="fa-solid fa-plus mr-1"></i> Tambah
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="flex flex-wrap gap-2" id="list-mk-badge"></div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                            <div class="flex justify-between items-center mb-4">
+                                <div>
+                                    <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                                        <i class="fa-solid fa-clipboard-user text-indigo-600"></i> Log Kehadiran Real-time
+                                    </h2>
+                                    <p class="text-xs text-slate-500 mt-0.5">Mahasiswa yang di-scan otomatis tercatat hadir</p>
+                                </div>
+                                <button onclick="resetAbsen()" class="text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 px-3 py-1.5 rounded-lg border border-rose-100 transition">
+                                    <i class="fa-solid fa-trash mr-1"></i> Bersihkan Log
+                                </button>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="border-b border-slate-100 text-xs font-semibold text-slate-400 uppercase tracking-wider bg-slate-50/50">
+                                            <th class="p-3.5 rounded-l-xl">Waktu</th>
+                                            <th class="p-3.5">Mata Kuliah</th>
+                                            <th class="p-3.5">NIM</th>
+                                            <th class="p-3.5">Nama Mahasiswa</th>
+                                            <th class="p-3.5 text-center rounded-r-xl">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabel-absen-body" class="text-sm divide-y divide-slate-100">
+                                        <tr><td colspan="5" class="p-6 text-center text-slate-400">Belum ada mahasiswa yang diabsen.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tampilan Mahasiswa -->
+            <section id="section-mahasiswa" class="hidden max-w-xl mx-auto space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="text-center mb-6">
+                        <div class="bg-emerald-50 text-emerald-600 w-16 h-16 rounded-full flex items-center justify-center text-2xl mx-auto mb-3 shadow-inner">
+                            <i class="fa-solid fa-id-card"></i>
+                        </div>
+                        <h2 class="text-xl font-bold text-slate-800">KTM Digital & QR Absensi</h2>
+                        <p class="text-xs text-slate-500 mt-1">Masukkan data diri Anda untuk memunculkan Kartu QR Mahasiswa.</p>
+                    </div>
+
+                    <form id="form-mhs-single" onsubmit="simpanKartuMahasiswa(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">NIM Mahasiswa</label>
+                            <input type="text" id="mhs-input-nim" required placeholder="Contoh: 230102001" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Nama Lengkap</label>
+                            <input type="text" id="mhs-input-nama" required placeholder="Contoh: Budi Santoso" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Program Studi / Kelas</label>
+                            <input type="text" id="mhs-input-kelas" required placeholder="Contoh: D3 Teknik Informatika" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:outline-none">
+                        </div>
+                        <button type="submit" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-medium text-sm hover:bg-emerald-700 transition shadow-md shadow-emerald-200">
+                            Tampilkan Kartu QR Saya
+                        </button>
+                    </form>
+                </div>
+
+                <div id="kartu-digital-container" class="hidden bg-gradient-to-br from-slate-900 to-indigo-950 text-white p-6 rounded-3xl shadow-xl border border-indigo-500/30 flex flex-col items-center text-center relative overflow-hidden">
+                    <div class="w-full flex justify-between items-center mb-4 text-xs tracking-wider text-slate-400 uppercase font-semibold">
+                        <span><i class="fa-solid fa-shield-halved mr-1"></i> KTM Digital</span>
+                        <button onclick="editKartuMahasiswa()" class="text-indigo-300 hover:text-white underline text-[11px]">Ganti Data</button>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl shadow-lg my-2 border-4 border-indigo-400/30">
+                        <div id="qrcode-mahasiswa-besar" class="flex items-center justify-center"></div>
+                    </div>
+                    <div class="mt-4 space-y-1">
+                        <h3 id="display-nama" class="text-xl font-bold tracking-tight"></h3>
+                        <p id="display-nim" class="font-mono text-indigo-300 text-sm font-semibold"></p>
+                        <p id="display-kelas" class="text-xs text-slate-300"></p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <footer class="bg-white border-t border-slate-200 py-4 mt-8">
+            <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-400">
+                Sistem Absensi Kampus Berbasis QR Code &bull; Aman dengan Proteksi PIN
+            </div>
+        </footer>
+    </div>
+
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <!-- Custom Script -->
+    <script src="script.js"></script>
+</body>
+</html>
